@@ -41,4 +41,8 @@ class User extends Authenticatable
     {
         return $this->hasMany(Pin::class);
     }
+
+    public function comments(){
+        return $this->hasMany(Comment::class , 'comments' , 'user_id');
+    }
 }

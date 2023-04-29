@@ -31,7 +31,7 @@ class UserController extends Controller
         ]);
 
         if(Auth::id() !== $user->id){
-            return response()->json('Unauthorized' , 401);
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
         if ($request->has('name')) {
@@ -68,7 +68,7 @@ class UserController extends Controller
 
         // Check if the authenticated user is authorized to update the profile
         if(Auth::id() !== $user->id){
-            return response()->json('Unauthorized' , 401);
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
         // Delete the old profile if it exists
@@ -105,6 +105,6 @@ class UserController extends Controller
             return response()->json(['message'=>'Account deleted'], 201);
         }
 
-        return response()->json('Unauthorized', 401);
+        return response()->json(['error' => 'Unauthorized'], 401);
     }
 }

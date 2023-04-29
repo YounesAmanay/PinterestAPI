@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\api\FollowContorller;
 use App\Http\Controllers\api\PinController;
 use App\Http\Controllers\Api\UserController;
@@ -28,5 +29,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/profile/{user}' , [UserController::class , 'setProfile']);
     Route::get('/profile' , [UserController::class , 'getProfile']);
     Route::post('/user/{user}/follow/{follow}' , [FollowContorller::class , 'toggleFollow']);
-    Route::apiResource('pin', PinController::class)->except(['create', 'edit']);
+    Route::apiResource('pin', PinController::class);
+    Route::apiResource('pin.comment', CommentController::class)->only(['index', 'store', 'destroy']);
+
 });

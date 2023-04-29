@@ -1,49 +1,51 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Comment;
+use App\Models\Pin;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class CommentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+
+    public function index(Pin $pin)
     {
-        //
+        $comments = $pin->comments()->with('user')->get();
+
+        return response()->json(['comments' => $comments]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(Request $request, Pin $pin)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'content' => 'required|string|min:3|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $comment = new Comment();
+        $comment->content = $request->content;
+        $comment->user_id = Auth::id();
+
+        $pin->comments()->save($comment);
+
+        return response()->json(['comment' => $comment], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function destroy(Pin $pin , Comment $comment)
     {
-        //
-    }
+        if (Auth::id() !== $comment->user_id) {
+            return response()->json('Unauthorized', 401);
+        }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+        $comment->delete();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return response()->json(['message' => 'Comment deleted successfully']);
     }
 }
