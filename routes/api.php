@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\api\FollowContorller;
+use App\Http\Controllers\api\PinController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -27,4 +28,5 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/profile/{user}' , [UserController::class , 'setProfile']);
     Route::get('/profile' , [UserController::class , 'getProfile']);
     Route::post('/user/{user}/follow/{follow}' , [FollowContorller::class , 'toggleFollow']);
+    Route::apiResource('pin', PinController::class)->except(['create', 'edit']);
 });

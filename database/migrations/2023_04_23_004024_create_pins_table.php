@@ -13,7 +13,28 @@ return new class extends Migration
     {
         Schema::create('pins', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->string('pin');
+            $table->string('title');
+            $table->string('descreption')->nullable();
+            $table->unsignedBigInteger('category_id')->nullable();
+            $table->unsignedBigInteger('board_id')->nullable();
             $table->timestamps();
+
+            $table->foreign('user_id')
+                    ->references('id')
+                    ->on('users')
+                    ->onDelete('cascade');
+
+            $table->foreign('category_id')
+                    ->references('id')
+                    ->on('categories')
+                    ->onDelete('set null');
+
+            $table->foreign('board_id')
+                    ->references('id')
+                    ->on('boards')
+                    ->onDelete('set null');
         });
     }
 
