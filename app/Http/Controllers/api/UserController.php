@@ -15,11 +15,9 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
-    public function show()
+    public function show(User $user)
     {
-        $user = Auth::user();
         return new UserResource($user);
-        //todo : return the user follower and followee count along with his boards and pins
     }
 
     public function update(Request $request , User $user)
@@ -58,8 +56,7 @@ class UserController extends Controller
     {
 
         $validator =Validator::make($request->all() , [
-            'profile' => ['required', 'image', 'max:2048', 'dimensions:min_width=100,min_height=100,max_width=500,max_height=500']
-
+            'profile' => ['required', 'image']
         ]);
 
         if ($validator -> fails()) {
@@ -77,11 +74,11 @@ class UserController extends Controller
         }
 
         $image = $request->file('profile');
-        $name = time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
-        $path = $image->storeAs('profiles', $name, 'public');
+        $path = $image->store('profiles','public');
         $user -> profile = $path;
         $user -> save();
-        return response()->json('ok');
+        return response()->json(['message' => 'Profile updated successfully']);
+
     }
 
     public function getProfile()

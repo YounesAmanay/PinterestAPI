@@ -17,6 +17,15 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'followers' => $this->followers()->count(),
             'following' => $this->following()->count(),
+            'boards' => $this->boards->map(function ($board) {
+                if (!$board->secret) {
+                    return [
+                        'id' => $board->id,
+                        'name' => $board->name,
+                        'pins' => new PinCollection($board->pins)
+                    ];
+                }
+            })->filter()->values(),
         ];
 
         if ($this->profile && Storage::exists('public/'.$this->profile)) {

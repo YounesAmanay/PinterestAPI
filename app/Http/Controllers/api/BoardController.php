@@ -1,49 +1,67 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Board;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class BoardController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
-        //
+        $user = User::where('id',Auth::id())->first();
+        $boards = $user->boards()->with('pins')->orderByDesc('updated_at')->get();
+        return response()->json(['boards'=>$boards]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(),[
+            'name'=>['required', 'string' , 'max:100'],
+            'secret' => ['required' , 'boolean']
+        ]);
+        if($validator->fails())
+        {
+            return response()->json($validator->errors() , 422);
+        }
+        $board = new Board();
+        $board->name = $request->name;
+        $board->user_id = Auth::id();
+        $board->secret = $request->secret;
+        $board->save();
+        return response()->json(['message' => 'Board created successfully!'],201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function update(Request $request, Board $board)
     {
-        //
+        $validator = Validator::make($request->all(),[
+            'name'=>['required', 'string' , 'max:100'],
+            'secret' => ['required' , 'boolean']
+        ]);
+        if($validator->fails())
+        {
+            return response()->json($validator->errors() , 422);
+        }
+        $board->name = $request->name;
+        $board->user_id = Auth::id();
+        $board->secret = $request->secret;
+        $board->save();
+        return response()->json(['message' => 'Board updated successfully!'],201);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(Board $board)
     {
-        //
-    }
+        if($board->user_id !== Auth::id())
+        {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $board->delete();
+        return response()->json(['message' => 'Board deleted successfully'], 200);
     }
 }
