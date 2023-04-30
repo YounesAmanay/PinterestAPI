@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,5 +32,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/user/{user}/follow/{follow}' , [FollowContorller::class , 'toggleFollow']);
     Route::apiResource('pin', PinController::class);
     Route::apiResource('pin.comment', CommentController::class)->only(['index', 'store', 'destroy']);
+    Route::apiResource('category', CategoryController::class)->only(['index', 'show']);
+
 
 });
