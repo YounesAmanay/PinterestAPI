@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Laravel\Scout\Searchable;
+
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable , Searchable;
 
     protected $fillable = [
         'name',
@@ -49,5 +51,10 @@ class User extends Authenticatable
     public function boards()
     {
         return $this->hasMany(Board::class);
+    }
+
+    public function searches()
+    {
+        return $this->hasMany(Search::class);
     }
 }

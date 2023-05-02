@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\SearchController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,4 +34,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('pin.comment', CommentController::class)->only(['index', 'store', 'destroy']);
     Route::apiResource('category', CategoryController::class)->only(['index', 'show']);
     Route::apiResource('board', BoardController::class)->except('show');
+    Route::get('/search/history', [SearchController::class, 'index']);
+    Route::get('/search/suggestions', [SearchController::class, 'getSuggestions']);
+    Route::post('/search', [SearchController::class, 'search']);
 });
