@@ -57,4 +57,23 @@ class User extends Authenticatable
     {
         return $this->hasMany(Search::class);
     }
+
+    public function chats()
+    {
+        return $this->belongsToMany(Chat::class);
+    }
+
+    public function receivedMessages(Chat $chat)
+    {
+        return $this->hasMany(Message::class)
+            ->where('chat_id', $chat->id)
+            ->where('receiver_id', $this->id);
+    }
+
+    public function sentMessages(Chat $chat)
+    {
+        return $this->hasMany(Message::class)
+            ->where('chat_id', $chat->id)
+            ->where('sender_id', $this->id);
+    }
 }

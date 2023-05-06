@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\SearchController;
 
 /*
@@ -37,4 +39,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/search/history', [SearchController::class, 'index']);
     Route::get('/search/suggestions', [SearchController::class, 'getSuggestions']);
     Route::post('/search', [SearchController::class, 'search']);
+    Route::apiresource('chat',ChatController::class)->only(['index','show','destory']);
+    Route::apiresource('message',MessageController::class)->only(['store','destory']);
 });
