@@ -31,7 +31,14 @@ class AuthController extends Controller
             'message' => 'User registered successfully!'
         ], 201);
     }
+    public function check(Request $request)
+    {
+        $valid = $request->user() !== null;
 
+        return response()->json(['valid' => $valid,
+        'authUser'=>$request->user()->id
+    ]);
+    }
     public function login(Request $request)
     {
         $request->validate([

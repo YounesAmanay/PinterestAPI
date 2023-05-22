@@ -16,25 +16,27 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->string('pin');
             $table->string('title');
-            $table->string('descreption')->nullable();
+            $table->string('description')->nullable();
+            $table->boolean('saved')->default(false);
             $table->unsignedBigInteger('category_id')->nullable();
             $table->unsignedBigInteger('board_id')->nullable();
+            $table->unsignedBigInteger('original_pin_id')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')
-                    ->references('id')
-                    ->on('users')
-                    ->onDelete('cascade');
+                ->references('id')
+                ->on('users')
+                ->onDelete('cascade');
 
             $table->foreign('category_id')
-                    ->references('id')
-                    ->on('categories')
-                    ->onDelete('set null');
+                ->references('id')
+                ->on('categories')
+                ->onDelete('set null');
 
             $table->foreign('board_id')
-                    ->references('id')
-                    ->on('boards')
-                    ->onDelete('set null');
+                ->references('id')
+                ->on('boards')
+                ->onDelete('set null');
         });
     }
 

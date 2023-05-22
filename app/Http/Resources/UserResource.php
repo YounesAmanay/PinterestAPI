@@ -28,10 +28,7 @@ class UserResource extends JsonResource
             })->filter()->values(),
         ];
 
-        if ($this->profile && Storage::exists('public/'.$this->profile)) {
-            $data['profile'] = url('api/profile');
-        }
-
+   
         return $data;
     }
 }

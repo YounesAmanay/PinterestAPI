@@ -14,90 +14,64 @@ class ChatController extends Controller
 {
     public function index(Request $request)
     {
-        $lastUpdate = $request->input('lastUpdate');
-        $timeout = 30; // set timeout in seconds
-        $start = time();
-        while ((time() - $start) < $timeout) {
-            $user = User::find(Auth::id());
-            if (empty($lastUpdate)) {
-                // first time loading chats, return all chats
-                $chats = $user->chats()
-                    ->with(['lastMessage' => function ($query) {
-                        $query->orderBy('created_at', 'desc');
-                    }])
-                    ->get();
-            } else {
-                // not first time loading chats, check for new updates
-                $chats = $user->chats()
-                    ->with(['lastMessage' => function ($query) {
-                        $query->orderBy('created_at', 'desc');
-                    }])
-                    ->whereHas('lastMessage', function ($query) use ($lastUpdate) {
-                        $query->where('created_at', '>', $lastUpdate);
-                    })
-                    ->get();
-            }
-            if (count($chats) > 0) {
-                return ChatResource::collection($chats);
-            }
-            sleep(1);
-        }
-        return response()->json([]);
+        $user = User::find(Auth::id());
+
+        // Retrieve all chats for the authenticated user
+        $chats = $user->chats()
+            ->with(['lastMessage' => function ($query) {
+                $query->where(function ($query) {
+                    $query->where('receiver_id', auth()->id())
+                        ->where('receiver_vue', true);
+                })
+                ->orWhere(function ($query) {
+                    $query->where('sender_id', auth()->id())
+                        ->where('sender_vue', true);
+                })
+                ->orderBy('created_at', 'desc');
+            }])
+            ->get();
+
+        return ChatResource::collection($chats);
     }
 
     public function show($chatId, Request $request)
     {
-        $lastUpdate = $request->input('lastUpdate');
-        $timeout = 30; // set timeout in seconds
-        $start = time();
-        while ((time() - $start) < $timeout) {
-            $user = Auth::user();
-            $chat = Chat::findOrFail($chatId);
-            if (!$user->chats->contains($chat)) {
-                // The chat does not belong to the authenticated user
-                // Handle this case as appropriate (e.g. return an error response)
-                return response()->json(['error' => 'Unauthorized'], 403);
-            }
-            if (empty($lastUpdate)) {
-                // first time loading messages, return all messages
-                $messages = $chat->messages()
-                    ->where(function ($query) use ($user) {
-                        $query->where(function ($query) use ($user) {
-                            $query->where('sender_id', $user->id)
-                                ->where('sender_vue', true);
-                        })->orWhere(function ($query) use ($user) {
-                            $query->where('receiver_id', $user->id)
-                                ->where('receiver_vue', true);
-                        });
-                    })
-                    ->orderBy('created_at')
-                    ->get();
-            } else {
-                // not first time loading messages, check for new updates
-                $messages = $chat->messages()
-                    ->where(function ($query) use ($user) {
-                        $query->where(function ($query) use ($user) {
-                            $query->where('sender_id', $user->id)
-                                ->where('sender_vue', true);
-                        })->orWhere(function ($query) use ($user) {
-                            $query->where('receiver_id', $user->id)
-                                ->where('receiver_vue', true);
-                        });
-                    })
-                    ->where('created_at', '>', $lastUpdate)
-                    ->orderBy('created_at')
-                    ->get();
-            }
-            if (count($messages) > 0) {
-                return [
-                    'chat' => new ChatResource($chat),
-                    'messages' => MessageResource::collection($messages),
-                ];
-            }
-            sleep(1);
+        $user = Auth::user();
+        $chat = Chat::findOrFail($chatId);
+
+        $otherUser = $chat->users()->where('id', '!=', $user->id)->first();
+        if (!$user->chats->contains($chat)) {
+            return response()->json(['error' => 'Unauthorized'], 403);
         }
+
+        $messages = $chat->messages()
+            ->where(function ($query) use ($user) {
+                $query->where(function ($query) use ($user) {
+                    $query->where('sender_id', $user->id)
+                        ->where('sender_vue', true);
+                })->orWhere(function ($query) use ($user) {
+                    $query->where('receiver_id', $user->id)
+                        ->where('receiver_vue', true);
+                });
+            })
+            ->orderBy('created_at')
+            ->get();
+
+        if (count($messages) > 0) {
+            $chat->messages()
+                ->where('receiver_id', $user->id)
+                ->update(['is_read' => true]);
+
+            return [
+                'user_id'=>$otherUser->id,
+                'user_name' =>$otherUser->name ,
+                'messages' => MessageResource::collection($messages),
+            ];
+        }
+
         return response()->json([]);
     }
+
 
     public function destroy($chatId)
     {

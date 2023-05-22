@@ -20,7 +20,7 @@ class UserController extends Controller
         return new UserResource($user);
     }
 
-    public function update(Request $request , User $user)
+    public function update(Request $request, User $user)
     {
         $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],
@@ -28,7 +28,7 @@ class UserController extends Controller
             'password' => ['sometimes', 'min:8', 'confirmed'],
         ]);
 
-        if(Auth::id() !== $user->id){
+        if (Auth::id() !== $user->id) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
@@ -52,54 +52,51 @@ class UserController extends Controller
         ]);
     }
 
-    public function setProfile(Request $request , User $user)
+    public function setProfile(Request $request)
     {
-
-        $validator =Validator::make($request->all() , [
+        $validator = Validator::make($request->all(), [
             'profile' => ['required', 'image']
         ]);
 
-        if ($validator -> fails()) {
-            return response() -> json($validator -> errors(), 422);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
         }
 
-        // Check if the authenticated user is authorized to update the profile
-        if(Auth::id() !== $user->id){
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
+        $user = User::find(Auth::id());
 
         // Delete the old profile if it exists
-        if ($user->profile && Storage::exists('public/'.$user->profile)) {
-            storage::delete('public/'.$user->profile);
+        if ($user->profile && Storage::exists('public/profiles/' . $user->profile)) {
+            Storage::delete('public/profiles/' . $user->profile);
         }
 
         $image = $request->file('profile');
-        $path = $image->store('profiles','public');
-        $user -> profile = $path;
-        $user -> save();
-        return response()->json(['message' => 'Profile updated successfully']);
+        $path = Storage::putFileAs('public/profiles', $image, uniqid() . '.png');
+        $user->profile = basename($path);
+        $user->save();
 
+        return response()->json(['message' => 'Profile updated successfully']);
     }
 
-    public function getProfile()
+
+    public function getProfile(User $user)
     {
-        $user = Auth::user();
-        //check if the user has profile
-        if($user->profile && Storage::exists('public/'.$user->profile)) {
-            $path = storage_path('app/public/' . $user->profile);
-            return response()->file($path);
+        if ($user->profile) {
+            $path = Storage::path('public/profiles/' . $user->profile);
+            if (file_exists($path)) {
+                return response()
+                ->file($path);
+            }
         }
 
-        return response()->json(['message' => 'Profile not found'], 401);
+        return response()->json(['message' => 'Profile not found'], 404);
     }
-
 
     public function destroy(User $user)
     {
         // Check if the authenticated user has permission to delete the user
         if (Auth::id() === $user->id) {
             $user->delete();
-            return response()->json(['message'=>'Account deleted'], 201);
+            return response()->json(['message' => 'Account deleted'], 201);
         }
 
         return response()->json(['error' => 'Unauthorized'], 401);

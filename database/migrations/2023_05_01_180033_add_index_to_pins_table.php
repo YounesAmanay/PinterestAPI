@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('pins', function (Blueprint $table) {
-            $table->fullText(['title', 'descreption']);
+            $table->fullText(['title', 'description']);
         });
         Schema::table('users', function (Blueprint $table) {
             $table->fullText(['name']);
@@ -25,7 +25,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('pins', function (Blueprint $table) {
-            $table->dropIndex('pins_title_descreption_fulltext');
+            $table->dropIndex('pins_title_description_fulltext');
         });
         Schema::table('users', function (Blueprint $table) {
             $table->dropIndex('users_name_fulltext');

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Http\Resources\PinCollection;
@@ -38,18 +37,34 @@ class SearchController extends Controller
         $pins = $pins->sortByDesc('similarity');
 
         // Store the search query in the searches table
-        Search::create([
-            'query' => $query,
-            'user_id' => $request->user()->id
-        ]);
+        $user = $request->user();
+        $user->searches()->create(['query' => $query]);
+
+        // Delete old searches if there are more than 8
+        $searchCount = $user->searches()->count();
+        if ($searchCount > 8) {
+            $user->searches()->orderBy('created_at')->take($searchCount - 8)->delete();
+        }
 
         return new PinCollection($pins);
     }
 
+    public function destroy(Request $request, $id)
+    {
+        $user = $request->user();
+        $user->searches()->findOrFail($id)->delete();
 
-    function getSuggestions(Request $request)
+        return response()->json(['message' => 'Search term deleted successfully']);
+    }
+
+    public function getSuggestions(Request $request)
     {
         $query = $request->q;
+
+        if (empty($query)) {
+            return [];
+        }
+
         $users = User::search($query)->take(10)->get();
         $pins = Pin::search($query)->take(10)->get();
 

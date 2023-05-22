@@ -15,6 +15,7 @@ class Pin extends Model
         'title',
         'description',
         'category_id',
+        'saved',
         'board_id',
     ];
 

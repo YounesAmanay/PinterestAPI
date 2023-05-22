@@ -23,10 +23,11 @@ class UserSeeder extends Seeder
             ]);
 
             // Set a profile image for 2 users
-                $image = storage_path('app/Darkinism.jpg');
-                $path = Storage::putFileAs('public/profiles', new \Illuminate\Http\File($image), uniqid() . '.png');
-                $user->profile = $image;
-                $user->save();
+            $image = storage_path('app/Darkinism.jpg');
+            $path = Storage::putFileAs('public/profiles', new \Illuminate\Http\File($image), uniqid() . '.png');
+            $user->profile = basename($path);
+            $user->save();
+
         }
     }
 }

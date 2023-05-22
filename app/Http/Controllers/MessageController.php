@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageDeleted;
+use App\Events\NewMessage;
 use App\Http\Resources\MessageResource;
 use App\Models\Chat;
 use App\Models\Message;
@@ -47,18 +49,18 @@ class MessageController extends Controller
 
         // create new message
         $message = new Message();
-        $message->body = $request->input('body');
+        $message->content = $request->input('body');
         $message->sender_id = $sender->id;
         $message->receiver_id = $receiver->id;
         $chat->messages()->save($message);
+        broadcast(new NewMessage($message))->toOthers();
 
         return new MessageResource($message);
     }
 
-    public function destroy($messageId)
+    public function destroy(Message $message)
     {
         $user = Auth::user();
-        $message = Message::findOrFail($messageId);
         $chat = $message->chat;
 
         // check if user belongs to chat
@@ -83,6 +85,14 @@ class MessageController extends Controller
             // handle this case as appropriate (e.g. return an error response)
             return response()->json(['error' => 'Unauthorized'], 403);
         }
+
+        // check if both sender_vue and receiver_vue are false
+        if (!$message->sender_vue && !$message->receiver_vue) {
+            // delete message from database
+            $message->delete();
+        }
+
+        broadcast(new MessageDeleted($message))->toOthers();
 
         return response()->json([], 204);
     }

@@ -29,12 +29,12 @@ class PinSSeeder extends Seeder
             $pin->category_id = Category::inRandomOrder()->first()->id;
             $pin->board_id = $pin->user->boards()->inRandomOrder()->first()->id; // Assigning a random board from the user's boards
             $pin->title = $faker->sentence(3);
-            $pin->descreption = $faker->sentence(10);
+            $pin->description = $faker->sentence(10);
 
             // Generate and store the image
-            $image = storage_path('app/Pinterest redesign concept_ UX_UI design (1).png');
-            $path = Storage::putFileAs('pins', new \Illuminate\Http\File($image), uniqid() . '.png');
-            $pin->pin = $path;
+            $image = storage_path('app/pin.png');
+            $path = Storage::putFileAs('public/pins', new \Illuminate\Http\File($image), uniqid() . '.png');
+            $pin->pin = basename($path);
             $pin->save();
         }
 

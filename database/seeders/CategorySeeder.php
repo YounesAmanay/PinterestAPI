@@ -16,7 +16,7 @@ class CategorySeeder extends Seeder
         $categories = [
             'Nature', 'Travel', 'Food', 'Art', 'Fashion', 'Fitness', 'Music', 'Sports',
             'Pets', 'Technology', 'Education', 'Books', 'Movies', 'Cars', 'Architecture',
-            'Design', 'Gardening', 'DIY', 'Beauty', 'Business'
+            'Design', 'Gardening', 'DIY', 'Beauty', 'Business' ,'test'
         ];
 
         foreach ($categories as $category) {
