@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\api;
 
+use App\Events\DeleteComment;
+use App\Events\NewComment;
 use App\Http\Controllers\Controller;
 use App\Models\Comment;
 use App\Models\Pin;
@@ -34,6 +36,8 @@ class CommentController extends Controller
         $comment->user_id = Auth::id();
 
         $pin->comments()->save($comment);
+        broadcast(new NewComment($comment))->toOthers();
+
 
         return response()->json(['comment' => $comment], 201);
     }
@@ -45,6 +49,7 @@ class CommentController extends Controller
         }
 
         $comment->delete();
+        broadcast(new NewComment($comment))->toOthers();
 
         return response()->json(['message' => 'Comment deleted successfully']);
     }

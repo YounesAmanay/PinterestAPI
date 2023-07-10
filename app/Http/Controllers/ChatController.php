@@ -23,16 +23,62 @@ class ChatController extends Controller
                     $query->where('receiver_id', auth()->id())
                         ->where('receiver_vue', true);
                 })
-                ->orWhere(function ($query) {
-                    $query->where('sender_id', auth()->id())
-                        ->where('sender_vue', true);
-                })
-                ->orderBy('created_at', 'desc');
+                    ->orWhere(function ($query) {
+                        $query->where('sender_id', auth()->id())
+                            ->where('sender_vue', true);
+                    })
+                    ->orderBy('created_at', 'desc');
             }])
             ->get();
 
+        // Order chats by last activity
+        $chats = $chats->sortByDesc(function ($chat) {
+            return optional($chat->lastMessage)->created_at;
+        });
+
         return ChatResource::collection($chats);
     }
+
+
+    public function store(Request $request)
+    {
+        $receiver_id = $request->input('receiver_id');
+        $sender = User::find(Auth::id());
+
+        // check if chat already exists between sender and receiver
+        $chat = Chat::whereHas('users', function ($query) use ($sender) {
+            $query->where('users.id', $sender->id);
+        })->whereHas('users', function ($query) use ($receiver_id) {
+            $query->where('users.id', $receiver_id);
+        })->first();
+
+        if (!$chat) {
+            // chat does not exist, create new chat
+            $chat =new Chat();
+            $chat->user1_id = $sender->id;
+            $chat->user2_id = $receiver_id;
+            $chat->save();
+            $chat->users()->attach([$sender->id, $receiver_id]);
+
+            $message = new Message();
+            $message->content = 'Hello there';
+            $message->sender_id = $sender->id;
+            $message->receiver_id = $receiver_id;
+            $chat->messages()->save($message);
+        }
+
+        // get receiver name
+        $receiver = User::find($receiver_id);
+        $receiver_name = $receiver->name;
+
+        return response()->json([
+            'chat_id' => $chat->id,
+            'receiver_name' => $receiver_name,
+            'sender_id' => $sender->id,
+        ]);
+    }
+
+
 
     public function show($chatId, Request $request)
     {
@@ -63,8 +109,8 @@ class ChatController extends Controller
                 ->update(['is_read' => true]);
 
             return [
-                'user_id'=>$otherUser->id,
-                'user_name' =>$otherUser->name ,
+                'user_id' => $otherUser->id,
+                'user_name' => $otherUser->name,
                 'messages' => MessageResource::collection($messages),
             ];
         }

@@ -1,7 +1,8 @@
 <?php
+
 namespace App\Events;
 
-use App\Models\Message;
+use App\Models\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -11,19 +12,28 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class NewMessage implements ShouldBroadcastNow
+class UserFollowed implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $message;
+    public $follower;
+    public $followed;
 
-    public function __construct(Message $message)
+    public function __construct(User $follower, User $followed)
     {
-        $this->message = $message;
+        $this->follower = $follower;
+        $this->followed = $followed;
     }
 
     public function broadcastOn()
     {
-        return new Channel('chat.' . $this->message->chat_id);
+        return new Channel('user.'.$this->followed->id);
+    }
+
+    public function broadcastWith()
+    {
+        return [
+            'followerName' => $this->follower->name,
+        ];
     }
 }

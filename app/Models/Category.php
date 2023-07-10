@@ -10,7 +10,13 @@ class Category extends Model
     use HasFactory;
 
     protected $fillable  = ['name'];
+
     function pins(){
         return $this->hasMany(Pin::class);
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class);
     }
 }

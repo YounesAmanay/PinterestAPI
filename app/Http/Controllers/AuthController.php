@@ -33,12 +33,18 @@ class AuthController extends Controller
     }
     public function check(Request $request)
     {
-        $valid = $request->user() !== null;
+        $user = User::find(Auth::id());
+        $valid = $user !== null;
+        $onboarding = $user->hasCompletedOnboarding();
 
-        return response()->json(['valid' => $valid,
-        'authUser'=>$request->user()->id
-    ]);
+        return response()->json([
+            'valid' => $valid,
+            'authUser'=>$user->id,
+            'authName'=>$user->name,
+            'onboarding'=>$onboarding
+        ]);
     }
+
     public function login(Request $request)
     {
         $request->validate([

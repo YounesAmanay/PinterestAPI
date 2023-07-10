@@ -20,7 +20,6 @@ return new class extends Migration
             $table->boolean('saved')->default(false);
             $table->unsignedBigInteger('category_id')->nullable();
             $table->unsignedBigInteger('board_id')->nullable();
-            $table->unsignedBigInteger('original_pin_id')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')

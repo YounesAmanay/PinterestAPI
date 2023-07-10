@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class PinController extends Controller
 {
@@ -22,9 +23,16 @@ class PinController extends Controller
         $pins = $user->pins()->orderBy('created_at', 'desc')->get();
         return new PinCollection($pins);
     }
-    public function home()
+    
+    public function home(Request $request)
     {
-        $pins = Pin::orderBy('created_at', 'desc')->get();
+        $user = User::find(Auth::id());
+        $categoryIds = $user->categories->pluck('id');
+
+        $pins = Pin::whereIn('category_id', $categoryIds)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return new PinCollection($pins);
     }
 
@@ -32,10 +40,15 @@ class PinController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'pin' => 'required|image',
-            'title' => 'required|string|min:10',
+            'title' => 'required|string|min:5',
             'description' => 'nullable|string|max:255',
             'category_id' => 'required|exists:categories,id',
-            'board_id' => 'required|exists:boards,id',
+            'board_id' => [
+                'required',
+                Rule::exists('boards', 'id')->where(function ($query) {
+                    $query->where('user_id', Auth::id());
+                }),
+            ],
         ]);
 
         if ($validator->fails()) {
@@ -61,6 +74,7 @@ class PinController extends Controller
             'message' => 'Pin created successfully!',
         ], 201);
     }
+
 
 
     public function show(Pin $pin)
@@ -142,17 +156,9 @@ class PinController extends Controller
             return response()->json(['message' => 'You cannot repin your own pin'], 403);
         }
 
-        // Create a new pin with the same attributes as the original pin
-        $newPin = new Pin($pin->attributesToArray());
-
-        // Update the user_id, saved_at, and board_id attributes
-        $newPin->user_id = $user->id;
-        $newPin->saved_at = now();
-        $newPin->board_id = $request->board_id;
-
-        // Save the new pin
-        $user->pins()->save($newPin);
+        $user->savedPins()->attach($pin->id);
 
         return response()->json(['message' => 'Pin repinned successfully'], 200);
     }
+
 }

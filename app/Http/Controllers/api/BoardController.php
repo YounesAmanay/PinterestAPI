@@ -34,7 +34,7 @@ class BoardController extends Controller
         $board->user_id = Auth::id();
         $board->secret = $request->secret;
         $board->save();
-        return response()->json(['message' => 'Board created successfully!'],201);
+        return response()->json(['board' => $board],201);
     }
 
     public function update(Request $request, Board $board)

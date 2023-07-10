@@ -12,7 +12,7 @@ use Laravel\Scout\Searchable;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable , Searchable;
+    use HasApiTokens, HasFactory, Notifiable, Searchable;
 
     protected $fillable = [
         'name',
@@ -36,7 +36,7 @@ class User extends Authenticatable
 
     public function Following()
     {
-        return $this -> belongsToMany(User::class , 'followers' , 'follower_id' , 'followee_id');
+        return $this->belongsToMany(User::class, 'followers', 'follower_id', 'followee_id');
     }
 
     public function pins()
@@ -44,8 +44,9 @@ class User extends Authenticatable
         return $this->hasMany(Pin::class);
     }
 
-    public function comments(){
-        return $this->hasMany(Comment::class , 'comments' , 'user_id');
+    public function comments()
+    {
+        return $this->hasMany(Comment::class, 'comments', 'user_id');
     }
 
     public function boards()
@@ -76,4 +77,20 @@ class User extends Authenticatable
             ->where('chat_id', $chat->id)
             ->where('sender_id', $this->id);
     }
+
+    public function hasCompletedOnboarding()
+    {
+        return $this->onboarding;
+    }
+
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class);
+    }
+
+    public function savedPins()
+    {
+        return $this->belongsToMany(Pin::class, 'saved_pins', 'user_id', 'pin_id')->withTimestamps();
+    }
+
 }
